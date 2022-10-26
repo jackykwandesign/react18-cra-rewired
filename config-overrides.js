@@ -2,6 +2,7 @@ const webpack = require("webpack");
 const path = require("path");
 const chalk = require("chalk");
 const ProgressBarPlugin = require("progress-bar-webpack-plugin");
+const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 
 module.exports = {
   webpack: function (config, env) {
@@ -27,10 +28,11 @@ module.exports = {
         // os: require.resolve("os-browserify"),
         // url: require.resolve("url"),
       },
-      alias: {
-        ...config.resolve.alias,
-        "@": path.resolve(__dirname, "src"),
-      },
+      plugins: [new TsconfigPathsPlugin()],
+      // alias: {
+      //   ...config.resolve.alias,
+      //   "@": path.resolve(__dirname, "src"),
+      // },
     };
 
     //plugin to show progress
