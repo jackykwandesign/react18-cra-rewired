@@ -1,85 +1,59 @@
-/* config-overrides.js */
-// https://stackoverflow.com/questions/64557638/how-to-polyfill-node-core-modules-in-webpack-5
-const webpack = require('webpack');
-const path = require('path');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const smp = new SpeedMeasurePlugin();
-module.exports = function override(config, env) {
-    // config.entry = {
-    //     app: './src/index.js',
-    // },
+const webpack = require("webpack");
+const path = require("path");
+const chalk = require("chalk");
+const ProgressBarPlugin = require("progress-bar-webpack-plugin");
 
-    //     config.devtool = 'inline-source-map',
+module.exports = {
+  webpack: function (config, env) {
+    // Parallel option does not work sometimes in CircleCI
+    config.optimization.minimizer.forEach((minimizer) => {
+      if (minimizer && minimizer.options) {
+        minimizer.options.parallel = false;
+      }
+    });
 
-    //     config.devServer = {
-    //         static: './dist',
-    //         hot: true,
-    //     },
-
-    //     config.output = {
-    //         filename: '[name].bundle.js',
-    //         path: path.resolve(__dirname, 'dist'),
-    //         clean: true,
-    //     },
-
-        // //do stuff with the webpack config...
-        config.resolve.fallback = {
-            "fs": false,
-            "crypto": require.resolve("crypto-browserify"),
-            "stream": require.resolve("stream-browserify"),
-            "assert": require.resolve("assert"),
-            "http": require.resolve("stream-http"),
-            "https": require.resolve("https-browserify"),
-            "os": require.resolve("os-browserify"),
-            "url": require.resolve("url")
-        },
-
-        config.plugins = (config.plugins || []).concat([
-            new webpack.ProvidePlugin({
-                process: 'process/browser',
-                Buffer: ['buffer', 'Buffer']
-            }),
-            // new HtmlWebpackPlugin()
-        ])
-
-    config.module = {
-        rules: [
-            {
-                test: /\.css$/i,
-                use: [MiniCssExtractPlugin.loader, "css-loader"],
-            },
-            {
-                test: /\.(js|jsx)$/,
-                include: path.resolve(__dirname, 'src'),
-                exclude: /(node_modules|bower_components)/,
-                loader: "babel-loader",
-                options: { presets: ["@babel/env"] }
-            },
-            {
-                test: /\.(ts|tsx)$/,
-                include: path.resolve(__dirname, 'src'),
-                exclude: /(node_modules|bower_components)/,
-                use: ["ts-loader"],
-            },
-        ],
-    }
-
-
-    // allow import file from src with @
+    // webpack 5 polyfill
     config.resolve = {
-        ...config.resolve,
-        alias: {
-            ...config.alias,
-            '@': path.resolve(__dirname, 'src'),
-        },
-    }
+      ...config.resolve,
+      fallback: {
+        ...config.resolve.fallback,
+        fs: false,
+        crypto: require.resolve("crypto-browserify"),
+        stream: require.resolve("stream-browserify"),
+        util: require.resolve("util/"),
+        // assert: require.resolve("assert"),
+        // http: require.resolve("stream-http"),
+        // https: require.resolve("https-browserify"),
+        // os: require.resolve("os-browserify"),
+        // url: require.resolve("url"),
+      },
+      alias: {
+        ...config.resolve.alias,
+        "@": path.resolve(__dirname, "src"),
+      },
+    };
 
-    // workaround to remove MiniCssExtractPlugin before smp
-    config.plugins = config.plugins.filter((plugin) => !(plugin instanceof MiniCssExtractPlugin));
+    //plugin to show progress
+    config.plugins = (config.plugins || []).concat([
+      new webpack.ProvidePlugin({
+        process: "process/browser",
+        Buffer: ["buffer", "Buffer"],
+      }),
+      new ProgressBarPlugin({
+        format:
+          "  build :msg [:bar] " +
+          chalk.green.bold(":percent") +
+          " (:elapsed seconds)",
+        clear: false,
+      }),
+    ]);
 
-    const configWithTimeMeasures = smp.wrap(config);
-    configWithTimeMeasures.plugins.push(new MiniCssExtractPlugin({}));
-    return configWithTimeMeasures
-}
+    config.resolveLoader = {
+      ...config.resolveLoader,
+      alias: {
+        hbs: "handlebars-loader",
+      },
+    };
+    return config;
+  },
+};
