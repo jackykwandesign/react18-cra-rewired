@@ -8,4 +8,4 @@ In the project directory, you can run:
 
 ### `yarn start`
 
-With i18 example [deployment](https://github.com/jackykwandesign/react18-cra-rewired/tree/react-i18n) for more information.
+[with i18 example](https://github.com/jackykwandesign/react18-cra-rewired/tree/react-i18n) for more information.
