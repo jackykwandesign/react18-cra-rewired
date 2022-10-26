@@ -1,25 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
-import Testing from './testing';
+import { I18nextProvider, useTranslation } from "react-i18next";
+import {i18Props} from '@/i18n' 
 
 function App() {
+  const { t, i18n } = useTranslation();
+  const changeLanguageHandler = (lang:string) =>
+  {
+    i18n.changeLanguage(lang)
+  }
+
   return (
+    <I18nextProvider {...i18Props}>
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <Testing /> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h2>{t('look.deep')}</h2>
+      <h2>{t('key')}</h2>
+      <br/>
+      <button onClick={()=>changeLanguageHandler("en")}>Change to EN</button>
+      <button onClick={()=>changeLanguageHandler("he")}> Change to HE</button>
     </div>
+    </I18nextProvider>
+
   );
 }
 
